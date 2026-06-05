@@ -24,12 +24,13 @@ CREATE INDEX IF NOT EXISTS idx_pagina_documento ON pagina(documento_id);
 
 CREATE TABLE IF NOT EXISTS dados_operacionais_trimestre (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    documento_id INTEGER NOT NULL UNIQUE REFERENCES documento_origem(id) ON DELETE CASCADE,
+    documento_id INTEGER NOT NULL REFERENCES documento_origem(id) ON DELETE CASCADE,
     empresa TEXT,
     ano INTEGER,
     trimestre INTEGER,
     lancamentos_valor_absoluto REAL,
-    vendas_valor_absoluto REAL
+    vendas_valor_absoluto REAL,
+    UNIQUE (documento_id, empresa)
 );
 """
 
