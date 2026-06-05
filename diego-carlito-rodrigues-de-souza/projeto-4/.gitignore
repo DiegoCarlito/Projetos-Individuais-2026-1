@@ -5,3 +5,6 @@ data/
 venv/
 env/
 __pycache__/
+
+# Credenciais
+.env
