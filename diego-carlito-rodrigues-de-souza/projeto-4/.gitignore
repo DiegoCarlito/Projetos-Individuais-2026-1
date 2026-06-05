@@ -1,0 +1,7 @@
+# Dados
+data/
+
+# Ambientes
+venv/
+env/
+__pycache__/
