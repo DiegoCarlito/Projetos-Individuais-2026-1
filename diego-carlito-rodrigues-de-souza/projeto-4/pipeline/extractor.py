@@ -52,7 +52,7 @@ def buscar_paginas_relevantes(conn: sqlite3.Connection, documento_id: int) -> st
 def extrair_dados_llm(texto_contexto: str) -> ResultadoExtracao:
     """Envia as páginas relevantes ao LLM e força o retorno estruturado."""
     return client.chat.completions.create(
-        model="llama-3.1-8b-instant",
+        model="llama-3.3-70b-versatile",
         response_model=ResultadoExtracao,
         messages=[
             {
