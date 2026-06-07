@@ -13,10 +13,16 @@ class DadosTrimestre(BaseModel):
     ano: int = Field(description="Ano de referência do relatório.")
     trimestre: int = Field(description="Trimestre de referência (1, 2, 3 ou 4).")
     lancamentos_valor_absoluto: Optional[float] = Field(
-        description="Valor financeiro em milhões. Tente ao máximo encontrar o número bruto (ex: 2355.0, 7.128) mesmo que esteja linhas abaixo da palavra 'Lançamentos'. Retorne null apenas se for impossível achar o valor monetário."
+        description="Valor numérico de lançamentos. Retorne apenas o número (ex: 1.2, 855.3, 2355.0)."
+    )
+    lancamentos_unidade: Optional[str] = Field(
+        description="A unidade de grandeza associada aos lançamentos (ex: 'milhões', 'bilhões'). Retorne null se não houver."
     )
     vendas_valor_absoluto: Optional[float] = Field(
-        description="Valor financeiro em milhões. Tente ao máximo encontrar o número bruto (ex: 2445.0, 7.722) mesmo que esteja linhas abaixo da palavra 'Vendas'. Retorne null apenas se for impossível achar o valor monetário."
+        description="Valor numérico de vendas. Retorne apenas o número (ex: 1.2, 855.3, 2445.0)."
+    )
+    vendas_unidade: Optional[str] = Field(
+        description="A unidade de grandeza associada às vendas (ex: 'milhões', 'bilhões'). Retorne null se não houver."
     )
 
 class ResultadoExtracao(BaseModel):
@@ -83,11 +89,11 @@ def processar_extracao(conn: sqlite3.Connection, documento_id: int):
         try:
             conn.execute("""
                 INSERT INTO dados_operacionais_trimestre 
-                (documento_id, empresa, ano, trimestre, lancamentos_valor_absoluto, vendas_valor_absoluto)
-                VALUES (?, ?, ?, ?, ?, ?)
+                (documento_id, empresa, ano, trimestre, lancamentos_valor_absoluto, lancamentos_unidade, vendas_valor_absoluto, vendas_unidade)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             """, (
                 documento_id, item.empresa, item.ano, item.trimestre, 
-                item.lancamentos_valor_absoluto, item.vendas_valor_absoluto
+                item.lancamentos_valor_absoluto, item.lancamentos_unidade, item.vendas_valor_absoluto, item.vendas_unidade
             ))
             sucessos += 1
         except sqlite3.IntegrityError:

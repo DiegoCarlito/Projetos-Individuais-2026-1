@@ -7,17 +7,17 @@ SCHEMA = """
 CREATE TABLE IF NOT EXISTS documento_origem (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     url_origem TEXT NOT NULL,
-    sha256 TEXT NOT NULL UNIQUE,     -- Hash do conteúdo (garante idempotência)
+    sha256 TEXT NOT NULL UNIQUE,
     num_paginas INTEGER NOT NULL,
-    ingerido_em TEXT NOT NULL        -- Timestamp ISO 8601
+    ingerido_em TEXT NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS pagina (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     documento_id INTEGER NOT NULL REFERENCES documento_origem(id) ON DELETE CASCADE,
-    num_pagina INTEGER NOT NULL,     -- Índice físico no PDF
+    num_pagina INTEGER NOT NULL,
     texto TEXT NOT NULL,
-    n_chars INTEGER NOT NULL,        -- Útil para pular páginas apenas com imagens
+    n_chars INTEGER NOT NULL,
     UNIQUE (documento_id, num_pagina)
 );
 CREATE INDEX IF NOT EXISTS idx_pagina_documento ON pagina(documento_id);
@@ -29,7 +29,9 @@ CREATE TABLE IF NOT EXISTS dados_operacionais_trimestre (
     ano INTEGER,
     trimestre INTEGER,
     lancamentos_valor_absoluto REAL,
+    lancamentos_unidade TEXT,
     vendas_valor_absoluto REAL,
+    vendas_unidade TEXT,
     UNIQUE (documento_id, empresa)
 );
 """

@@ -32,7 +32,9 @@ def obter_conjuntura(
             d.ano,
             d.trimestre,
             d.lancamentos_valor_absoluto,
+            d.lancamentos_unidade,
             d.vendas_valor_absoluto,
+            d.vendas_unidade,
             o.url_origem
         FROM dados_operacionais_trimestre d
         JOIN documento_origem o ON d.documento_id = o.id
