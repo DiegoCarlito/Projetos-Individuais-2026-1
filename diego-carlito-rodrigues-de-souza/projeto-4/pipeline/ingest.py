@@ -1,9 +1,9 @@
 import hashlib
 import sqlite3
 import requests
-import time
 from datetime import datetime
 import fitz
+from scrapers import varrer_portal_ri_playwright
 
 from db import connect
 
@@ -60,23 +60,34 @@ def baixar_e_ingerir(conn: sqlite3.Connection, url: str) -> dict:
 if __name__ == "__main__":
     conn = connect()
     
-    urls_para_monitorar = [
-        "https://raw.githubusercontent.com/unb-Sistemas-de-Machine-learning/Projetos-Individuais-2026-1/main/projeto-individual-4/exemplo_Boletim_Conjuntura_2025_3T.pdf",
-        "https://api.mziq.com/mzfilemanager/v2/d/4b56353d-d5d9-435f-bf63-dcbf0a6c25d5/2c084655-23f7-7c55-5ac7-f4b2ed930448?origin=2",
-        "https://vipfiles.valor.com.br/BDEmpresas/75b44eb0-d958-4cf6-9cb2-3e37d8fe4490.pdf",
-        "https://ri.tenda.com/docs/Tenda-2024-09-30-mKd7Kp9c.pdf",
-        "https://vipfiles.valor.com.br/BDEmpresas/9ca4de6a-7a52-49c1-952d-eeeb33487647.pdf",
-        "https://ri.tenda.com/docs/Tenda-2024-03-31-hBnkTncH.pdf"
+    # Portais iniciais das empresas
+    portais_das_construtoras = [
+        "https://ri.mrv.com.br/informacoes-financeiras/central-de-resultados/",
+        "https://ri.tenda.com/informacoes-financeiras/central-de-resultados/",
+        "https://ri.planoeplano.com.br/informacoes-financeiras/central-de-resultados/",
+        "https://ri.cury.net/informacoes-aos-investidores/central-de-resultados/",
+        "https://ri.direcional.com.br/informacoes-financeiras/central-de-resultados/"
     ]
     
-    print("Iniciando rotina de Polling nas centrais de RI...")
+    fila_de_pdfs = []
     
-    # Loop de varredura
-    for url in urls_para_monitorar:
-        try:
-            resultado = baixar_e_ingerir(conn, url)
-            print(f"Resultado: {resultado}")
-        except Exception as e:
-            print(f"Erro ao tentar baixar a URL {url}: {e}")
-            
-        time.sleep(2)
+    # Scraping Ativo com Playwright
+    for portal in portais_das_construtoras:
+        links_coletados = varrer_portal_ri_playwright(portal)
+        fila_de_pdfs.extend(links_coletados)
+        
+    fila_de_pdfs = list(set(fila_de_pdfs)) # Remove qualquer duplicacao de captura
+    
+    print(f"\n🚀 Fila final de ingestão montada com {len(fila_de_pdfs)} PDFs encontrados nas centrais.")
+    
+    # Download e Idempotencia Hash
+    if fila_de_pdfs:
+        for url in fila_de_pdfs:
+            try:
+                # O motor baixa o arquivo e verifica o HASH no banco para nao duplicar
+                resultado = baixar_e_ingerir(conn, url)
+                print(f"Resultado: {resultado}")
+            except Exception as e:
+                print(f"Erro na ingestão de {url}: {e}")
+    else:
+        print("Nenhum link de PDF novo encontrado nas varreduras.")

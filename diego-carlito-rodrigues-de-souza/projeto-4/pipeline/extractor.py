@@ -1,6 +1,7 @@
 import os
 import sqlite3
 import instructor
+import groq
 from groq import Groq
 from pydantic import BaseModel, Field
 from typing import Optional, List
@@ -51,7 +52,7 @@ def buscar_paginas_relevantes(conn: sqlite3.Connection, documento_id: int) -> st
 def extrair_dados_llm(texto_contexto: str) -> ResultadoExtracao:
     """Envia as páginas relevantes ao LLM e força o retorno estruturado."""
     return client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
+        model="llama-3.1-8b-instant",
         response_model=ResultadoExtracao,
         messages=[
             {
@@ -110,6 +111,13 @@ if __name__ == "__main__":
         print(f"Encontrados {len(docs)} documentos para processar.")
         for doc in docs:
             print(f"\nProcessando Documento ID: {doc['id']} | Origem: {doc['url_origem']}")
-            processar_extracao(conn, doc["id"])
-    else:
-        print("Nenhum documento encontrado. Rode o ingest.py primeiro.")
+            try:
+                processar_extracao(conn, doc["id"])
+            except groq.RateLimitError as e:
+                print(f"Alerta: Limite de uso da API atingido. Interrompendo a fila para evitar crash.")
+                break 
+            except groq.BadRequestError as e:
+                print(f"Erro na API da Groq: {e}")
+                break
+            except Exception as e:
+                print(f"Erro inesperado no documento {doc['id']}: {e}")
