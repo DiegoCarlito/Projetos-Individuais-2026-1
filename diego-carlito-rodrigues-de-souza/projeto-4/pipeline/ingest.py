@@ -78,7 +78,7 @@ if __name__ == "__main__":
         
     fila_de_pdfs = list(set(fila_de_pdfs)) # Remove qualquer duplicacao de captura
     
-    print(f"\n🚀 Fila final de ingestão montada com {len(fila_de_pdfs)} PDFs encontrados nas centrais.")
+    print(f"\nFila final de ingestão montada com {len(fila_de_pdfs)} PDFs encontrados nas centrais.")
     
     # Download e Idempotencia Hash
     if fila_de_pdfs:
