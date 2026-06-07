@@ -106,15 +106,13 @@ def processar_extracao(conn: sqlite3.Connection, documento_id: int):
 if __name__ == "__main__":
     conn = connect()
     
-    # Busca o ultimo PDF ingerido
-    doc = conn.execute("SELECT id, url_origem FROM documento_origem ORDER BY id DESC LIMIT 1").fetchone()
+    # Busca todos os PDFs ingeridos
+    docs = conn.execute("SELECT id, url_origem FROM documento_origem ORDER BY id ASC").fetchall()
     
-    if doc:
-        print(f"Processando Documento ID: {doc['id']} | Origem: {doc['url_origem']}")
-        resultado = processar_extracao(conn, doc["id"])
-        
-        if resultado:
-            print("\nResultado Validado pelo Pydantic:")
-            print(resultado.model_dump_json(indent=2))
+    if docs:
+        print(f"Encontrados {len(docs)} documentos para processar.")
+        for doc in docs:
+            print(f"\nProcessando Documento ID: {doc['id']} | Origem: {doc['url_origem']}")
+            processar_extracao(conn, doc["id"])
     else:
         print("Nenhum documento encontrado. Rode o ingest.py primeiro.")

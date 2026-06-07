@@ -62,10 +62,11 @@ if __name__ == "__main__":
     
     urls_para_monitorar = [
         "https://raw.githubusercontent.com/unb-Sistemas-de-Machine-learning/Projetos-Individuais-2026-1/main/projeto-individual-4/exemplo_Boletim_Conjuntura_2025_3T.pdf",
-        
         "https://api.mziq.com/mzfilemanager/v2/d/4b56353d-d5d9-435f-bf63-dcbf0a6c25d5/2c084655-23f7-7c55-5ac7-f4b2ed930448?origin=2",
-
-        "https://vipfiles.valor.com.br/BDEmpresas/75b44eb0-d958-4cf6-9cb2-3e37d8fe4490.pdf"
+        "https://vipfiles.valor.com.br/BDEmpresas/75b44eb0-d958-4cf6-9cb2-3e37d8fe4490.pdf",
+        "https://ri.tenda.com/docs/Tenda-2024-09-30-mKd7Kp9c.pdf",
+        "https://vipfiles.valor.com.br/BDEmpresas/9ca4de6a-7a52-49c1-952d-eeeb33487647.pdf",
+        "https://ri.tenda.com/docs/Tenda-2024-03-31-hBnkTncH.pdf"
     ]
     
     print("Iniciando rotina de Polling (varredura) nas centrais de RI...")
