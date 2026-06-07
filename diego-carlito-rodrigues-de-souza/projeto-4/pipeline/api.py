@@ -1,6 +1,5 @@
 from fastapi import FastAPI, Query, HTTPException
 from typing import Optional, List, Dict, Any
-import sqlite3
 from pipeline.db import connect
 
 app = FastAPI(

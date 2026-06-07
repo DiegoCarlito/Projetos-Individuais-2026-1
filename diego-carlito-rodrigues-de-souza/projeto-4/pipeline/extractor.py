@@ -7,31 +7,35 @@ from typing import Optional, List
 from dotenv import load_dotenv
 from db import connect
 
-# 1. Definição do Contrato Semântico
+# Definicao do Contrato Semantico
 class DadosTrimestre(BaseModel):
     empresa: str = Field(description="Nome da construtora (ex: MRV, Tenda, Cury, Plano & Plano, Direcional, Pacaembu).")
     ano: int = Field(description="Ano de referência do relatório.")
     trimestre: int = Field(description="Trimestre de referência (1, 2, 3 ou 4).")
     lancamentos_valor_absoluto: Optional[float] = Field(
-        description="Valor BRUTO e ABSOLUTO de lançamentos monetários. Se o texto exibir APENAS métricas relativas ou porcentagens (%), retorne null."
+        description="Valor financeiro em milhões. Tente ao máximo encontrar o número bruto (ex: 2355.0, 7.128) mesmo que esteja linhas abaixo da palavra 'Lançamentos'. Retorne null apenas se for impossível achar o valor monetário."
     )
     vendas_valor_absoluto: Optional[float] = Field(
-        description="Valor BRUTO e ABSOLUTO de vendas monetárias. Se o texto exibir APENAS métricas relativas ou porcentagens (%), retorne null."
+        description="Valor financeiro em milhões. Tente ao máximo encontrar o número bruto (ex: 2445.0, 7.722) mesmo que esteja linhas abaixo da palavra 'Vendas'. Retorne null apenas se for impossível achar o valor monetário."
     )
 
 class ResultadoExtracao(BaseModel):
     resultados: List[DadosTrimestre]
 
-# 2. Inicialização do Cliente LLM
+# Inicializacao do Cliente LLM
 load_dotenv()
 client = instructor.from_groq(Groq(api_key=os.environ.get("GROQ_API_KEY")))
 
 def buscar_paginas_relevantes(conn: sqlite3.Connection, documento_id: int) -> str:
-    """Filtra o PDF via SQL para enviar ao LLM apenas as páginas com termos financeiros."""
+    """Filtra o PDF via SQL contornando a limitação de acentos do SQLite."""
     cur = conn.execute("""
         SELECT texto FROM pagina 
         WHERE documento_id = ? 
-          AND (texto LIKE '%Lançamento%' OR texto LIKE '%Vendas%' OR texto LIKE '%Trimestre%')
+          AND (
+              texto LIKE '%lan_amento%' OR texto LIKE '%LAN_AMENTO%' OR 
+              texto LIKE '%venda%' OR texto LIKE '%VENDA%' OR 
+              texto LIKE '%trimestre%' OR texto LIKE '%TRIMESTRE%'
+          )
         ORDER BY num_pagina
     """, (documento_id,))
     
@@ -47,10 +51,14 @@ def extrair_dados_llm(texto_contexto: str) -> ResultadoExtracao:
             {
                 "role": "system",
                 "content": (
-                    "Você é um analista financeiro extraindo dados operacionais. "
-                    "Sua missão é extrair os dados de todas as construtoras listadas no texto. "
-                    "ATENÇÃO MÁXIMA: Ignore completamente colunas de variação (ex: -32%, +14%). "
-                    "Queremos apenas o valor financeiro absoluto. Se a tabela possuir apenas porcentagens, o valor absoluto DEVE ser null."
+                    "Você é um analista financeiro extraindo dados de PDFs desestruturados. "
+                    "O texto fornecido foi extraído de uma apresentação de slides. Por isso, a ordem das palavras está muito bagunçada. "
+                    "Sua tarefa: "
+                    "1. Identifique a construtora. "
+                    "2. Encontre o valor ABSOLUTO (em milhões) de Lançamentos e Vendas. "
+                    "3. O rótulo (ex: 'VENDAS LÍQUIDAS') pode aparecer no início do texto e o valor (ex: 7.128, 2.355) aparecer dezenas de linhas depois. Faça essa associação lógica. "
+                    "4. Ignore porcentagens de marketing (+17%, -5%). "
+                    "5. Extraia o maior valor financeiro absoluto associado ao trimestre atual e retorne como número."
                 )
             },
             {
@@ -69,7 +77,7 @@ def processar_extracao(conn: sqlite3.Connection, documento_id: int):
     print("Enviando páginas filtradas para o LLM via Groq...")
     extracao = extrair_dados_llm(texto_relevante)
     
-    # 3. Persistir os dados limpos no banco
+    # Persistir os dados limpos no banco
     sucessos = 0
     for item in extracao.resultados:
         try:
@@ -92,7 +100,7 @@ def processar_extracao(conn: sqlite3.Connection, documento_id: int):
 if __name__ == "__main__":
     conn = connect()
     
-    # Busca o último PDF ingerido
+    # Busca o ultimo PDF ingerido
     doc = conn.execute("SELECT id, url_origem FROM documento_origem ORDER BY id DESC LIMIT 1").fetchone()
     
     if doc:
