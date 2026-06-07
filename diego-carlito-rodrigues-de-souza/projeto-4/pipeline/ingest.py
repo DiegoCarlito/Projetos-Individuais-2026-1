@@ -29,7 +29,7 @@ def baixar_e_ingerir(conn: sqlite3.Connection, url: str) -> dict:
     sha = calcular_hash_conteudo(conteudo_pdf)
     
     if ja_ingerido(conn, sha):
-        return {"status": "pulado", "motivo": "Hash já existe no banco (Idempotência garantida)"}
+        return {"status": "pulado", "motivo": "Hash já existe no banco"}
         
     doc = fitz.open(stream=conteudo_pdf, filetype="pdf")
     num_paginas = doc.page_count
@@ -69,7 +69,7 @@ if __name__ == "__main__":
         "https://ri.tenda.com/docs/Tenda-2024-03-31-hBnkTncH.pdf"
     ]
     
-    print("Iniciando rotina de Polling (varredura) nas centrais de RI...")
+    print("Iniciando rotina de Polling nas centrais de RI...")
     
     # Loop de varredura
     for url in urls_para_monitorar:
