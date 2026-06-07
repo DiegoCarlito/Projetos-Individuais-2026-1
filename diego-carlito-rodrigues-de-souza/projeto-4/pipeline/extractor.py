@@ -13,16 +13,16 @@ class DadosTrimestre(BaseModel):
     ano: int = Field(description="Ano de referência do relatório.")
     trimestre: int = Field(description="Trimestre de referência (1, 2, 3 ou 4).")
     lancamentos_valor_absoluto: Optional[float] = Field(
-        description="Valor numérico de lançamentos. Retorne apenas o número (ex: 1.2, 855.3, 2355.0)."
+        description="Valor financeiro numérico bruto. Extraia APENAS se o número estiver clara e inequivocamente associado a Lançamentos. Se a tabela mostrar apenas porcentagens ou se houver dúvida, retorne null."
     )
     lancamentos_unidade: Optional[str] = Field(
-        description="A unidade de grandeza associada aos lançamentos (ex: 'milhões', 'bilhões'). Retorne null se não houver."
+        description="A unidade de grandeza (ex: 'milhões', 'bilhões'). Retorne null se não houver."
     )
     vendas_valor_absoluto: Optional[float] = Field(
-        description="Valor numérico de vendas. Retorne apenas o número (ex: 1.2, 855.3, 2445.0)."
+        description="Valor financeiro numérico bruto. Extraia APENAS se o número estiver clara e inequivocamente associado a Vendas. Se a tabela mostrar apenas porcentagens ou se houver dúvida, retorne null."
     )
     vendas_unidade: Optional[str] = Field(
-        description="A unidade de grandeza associada às vendas (ex: 'milhões', 'bilhões'). Retorne null se não houver."
+        description="A unidade de grandeza (ex: 'milhões', 'bilhões'). Retorne null se não houver."
     )
 
 class ResultadoExtracao(BaseModel):
@@ -57,14 +57,11 @@ def extrair_dados_llm(texto_contexto: str) -> ResultadoExtracao:
             {
                 "role": "system",
                 "content": (
-                    "Você é um analista financeiro extraindo dados de PDFs desestruturados. "
-                    "O texto fornecido foi extraído de uma apresentação de slides. Por isso, a ordem das palavras está muito bagunçada. "
-                    "Sua tarefa: "
-                    "1. Identifique a construtora. "
-                    "2. Encontre o valor ABSOLUTO (em milhões) de Lançamentos e Vendas. "
-                    "3. O rótulo (ex: 'VENDAS LÍQUIDAS') pode aparecer no início do texto e o valor (ex: 7.128, 2.355) aparecer dezenas de linhas depois. Faça essa associação lógica. "
-                    "4. Ignore porcentagens de marketing (+17%, -5%). "
-                    "5. Extraia o maior valor financeiro absoluto associado ao trimestre atual e retorne como número."
+                    "Você é um analista financeiro sênior extraindo dados operacionais rigorosos. "
+                    "REGRA 1: Retorne APENAS UM registro por construtora listada. "
+                    "REGRA 2: Procure os valores financeiros ABSOLUTOS (em milhões ou bilhões). "
+                    "REGRA 3: Ignore completamente variações percentuais de marketing (+17%, -5%). "
+                    "REGRA 4: TOLERÂNCIA ZERO PARA ALUCINAÇÃO. Nunca tente deduzir ou 'adivinhar' um valor. Se um número não estiver clara e diretamente associado à métrica solicitada, você DEVE retornar null. A integridade do dado é mais importante que o preenchimento do campo."
                 )
             },
             {
