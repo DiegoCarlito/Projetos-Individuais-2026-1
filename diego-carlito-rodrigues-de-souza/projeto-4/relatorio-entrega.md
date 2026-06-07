@@ -65,10 +65,7 @@ projeto-4/
 │   └── api.py            # Camada de serviço (Endpoints RESTful)
 ├── data/
 │   └── conjuntura.sqlite # Banco de Dados (Gerado automaticamente)
-├── requirements.txt      # Dependências do projeto
-├── README.md             # Documentação principal
-└── relatorio-entrega.md  # Relatório de execução e entrega
-
+└── requirements.txt      # Dependências do projeto
 ```
 
 ### 4.3 Como executar
